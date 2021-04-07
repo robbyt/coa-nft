@@ -1,6 +1,9 @@
 package cmd
 
 import (
+	"fmt"
+	"os"
+
 	"github.com/Boostport/address"
 	"github.com/davecgh/go-spew/spew"
 	inputData "github.com/robbyt/coa-nft/inputData/v1"
@@ -41,7 +44,24 @@ func renderLocal(cmd *cobra.Command, args []string) error {
 	id.People[0].SetPrimaryETHWallet(artistWallet)
 	id.People[0].SetPrimaryWebsite(artistWebsite)
 
-	addr, err := address.NewValid()
+	var mungedAddr []string
+	if addressLine1 != "" && addressLine2 != "" {
+		mungedAddr = []string{addressLine1, addressLine2}
+	} else if addressLine1 != "" && addressLine2 == "" {
+		mungedAddr = []string{addressLine1}
+	} else {
+		fmt.Println("Address format invalid")
+		os.Exit(1)
+	}
+
+	addr, err := address.NewValid(
+		address.WithCountry(addressCountry),
+		address.WithName(artistName),
+		address.WithStreetAddress(mungedAddr),
+		address.WithLocality(addressCity),
+		address.WithAdministrativeArea(addressState),
+		address.WithPostCode(addressZip),
+	)
 	if err != nil {
 		return err
 	}
@@ -88,5 +108,5 @@ func init() {
 	renderlocalCmd.PersistentFlags().StringVar(&addressZip, "addressZip", "", "Address - Zip")
 	renderlocalCmd.MarkPersistentFlagRequired("addressZip")
 
-	renderlocalCmd.PersistentFlags().StringVar(&addressCountry, "addressCountry", "USA", "Address - Country")
+	renderlocalCmd.PersistentFlags().StringVar(&addressCountry, "addressCountry", "US", "Address - Country")
 }
