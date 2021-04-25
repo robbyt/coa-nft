@@ -15,7 +15,7 @@ limitations under the License.
 */
 package main
 
-import "github.com/robbyt/coa-nft/cmd"
+import "github.com/robbyt/coa-nft/cli/cmd"
 
 func main() {
 	cmd.Execute()

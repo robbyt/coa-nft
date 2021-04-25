@@ -1,0 +1,25 @@
+{
+ "name": "coa-nft",
+ "description": "Graphical Interface for generating a COA",
+ "author": {
+  "name": "Robert Terhaar",
+  "email": "robbyt@robbyt.net"
+ },
+ "version": "0.1.0",
+ "binaryname": "coa-nft-gui",
+ "frontend": {
+  "dir": "frontend",
+  "install": "npm install",
+  "build": "npm run build",
+  "bridge": "src",
+  "serve": "npm run serve"
+ },
+ "tags": "",
+ "WailsVersion": "",
+ "CrossCompile": false,
+ "Platform": "",
+ "Architecture": "",
+ "LdFlags": "",
+ "GoPath": "",
+ "UseFirebug": false
+}
