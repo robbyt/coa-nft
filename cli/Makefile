@@ -1,5 +1,5 @@
 
-build: clean builds/coa-nft-cli_darwin-amd64 builds/coa-nft-cli_darwin-arm64 builds/coa-nft-cli_linux-amd64 builds/coa-nft-cli_linux-arm64 builds/checksum.sha256
+build: clean builds/coa-nft-cli_darwin-amd64 builds/coa-nft-cli_darwin-arm64 builds/coa-nft-cli_linux-amd64 builds/coa-nft-cli_linux-arm64 builds/checksum.sha256 builds/release.zip
 clean:
 	rm -rf builds
 .PHONY: build clean
@@ -21,3 +21,6 @@ builds/coa-nft-cli_linux-arm64: builds
 
 builds/checksum.sha256: builds
 	shasum -a 256 builds/* > $@
+
+builds/release.zip:
+	zip -j -9 $@ builds/*
