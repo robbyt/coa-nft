@@ -11,22 +11,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var templatePath string
-var validateAddress bool
-var id inputData.Data
-
-var artistEmail string
-var artistName string
-var artistWallet string
-var artistWebsite string
-
-var addressLine1 string
-var addressLine2 string
-var addressCity string
-var addressState string
-var addressZip string
-var addressCountry string
-
 // renderlocalCmd represents the renderlocal command
 var renderlocalCmd = &cobra.Command{
 	Use:   "renderlocal",
@@ -37,13 +21,8 @@ var renderlocalCmd = &cobra.Command{
 	RunE: renderLocal,
 }
 
-func renderLocal(cmd *cobra.Command, args []string) error {
-	// this prototype only supports a single person
-	id.People[0].Email = artistEmail
-	id.People[0].Name = artistName
-	id.People[0].SetPrimaryETHWallet(artistWallet)
-	id.People[0].SetPrimaryWebsite(artistWebsite)
-
+// Does some basic error handling for the addresses
+func mungeAddress(a1, a2 string) []string {
 	var mungedAddr []string
 	if addressLine1 != "" && addressLine2 != "" {
 		mungedAddr = []string{addressLine1, addressLine2}
@@ -53,17 +32,44 @@ func renderLocal(cmd *cobra.Command, args []string) error {
 		fmt.Println("Address format invalid")
 		os.Exit(1)
 	}
+	return mungedAddr
+}
+func renderLocal(cmd *cobra.Command, args []string) error {
+	id = inputData.DataFactory()
 
-	addr, err := address.NewValid(
-		address.WithCountry(addressCountry),
-		address.WithName(artistName),
-		address.WithStreetAddress(mungedAddr),
-		address.WithLocality(addressCity),
-		address.WithAdministrativeArea(addressState),
-		address.WithPostCode(addressZip),
-	)
-	if err != nil {
-		return err
+	// this prototype only supports a single person
+	id.WorkTitle = workTitle
+	id.People[0].Name = artistName
+	id.People[0].Email = artistEmail
+	id.People[0].SetPrimaryETHWallet(artistWallet)
+	id.People[0].SetPrimaryWebsite(artistWebsite)
+
+	// input address may have one or two lines, handle both here
+	squashedAddress := mungeAddress(addressLine1, addressLine2)
+
+	var addr address.Address
+	if validateAddress {
+		var err error
+		addr, err = address.NewValid(
+			address.WithCountry(addressCountry),
+			address.WithName(artistName),
+			address.WithStreetAddress(squashedAddress),
+			address.WithLocality(addressCity),
+			address.WithAdministrativeArea(addressState),
+			address.WithPostCode(addressZip),
+		)
+		if err != nil {
+			return err
+		}
+	} else {
+		addr = address.New(
+			address.WithCountry(addressCountry),
+			address.WithName(artistName),
+			address.WithStreetAddress(squashedAddress),
+			address.WithLocality(addressCity),
+			address.WithAdministrativeArea(addressState),
+			address.WithPostCode(addressZip),
+		)
 	}
 	id.People[0].SetPrimaryAddress(addr)
 
@@ -72,12 +78,11 @@ func renderLocal(cmd *cobra.Command, args []string) error {
 }
 
 func init() {
-	id = inputData.DataFactory()
-
 	// using dot notation to access embedded object attributes within lists is jank af
 	rootCmd.AddCommand(renderlocalCmd)
-	renderlocalCmd.PersistentFlags().StringVarP(&templatePath, "template", "t", "template.tmpl", "This template file will be used to render the COA")
-	renderlocalCmd.PersistentFlags().StringVar(&id.WorkTitle, "workTitle", "", "The title of this artwork")
+	renderlocalCmd.PersistentFlags().StringVarP(&templatePath, "template", "t", "", "This template file will be used to render the COA")
+
+	renderlocalCmd.PersistentFlags().StringVar(&workTitle, "workTitle", "", "The title of this artwork")
 	renderlocalCmd.MarkPersistentFlagRequired("workTitle")
 
 	renderlocalCmd.PersistentFlags().StringVar(&artistEmail, "artistEmail", "", "Artist's Email")
